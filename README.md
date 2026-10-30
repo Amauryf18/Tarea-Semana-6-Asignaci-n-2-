@@ -117,145 +117,282 @@ sequenceDiagram
 **Dispositivo:** R1-AAA  
 **Dirección IP:** `10.23.13.1`
 
-### 7.1. Configuración AAA
+R1-AAA#SHOW RUnning-config
+Building configuration...
 
-Se habilita el modelo AAA para administrar los mecanismos de autenticación, autorización y contabilidad.
-
-Comando de verificación:
-
-```cisco
-show running-config | section aaa
-```
-
-### 7.2. Configuración del cliente RADIUS
-
-Se configura la dirección del servidor RADIUS y los puertos utilizados para autenticación y contabilidad.
-
-```cisco
-show running-config | section radius
-show aaa servers
-```
-
-### 7.3. Usuario local
-
-Se crea un usuario local para disponer de un mecanismo alternativo de administración.
-
-```cisco
-show running-config | include username
-```
-
-### 7.4. Consola y puerto auxiliar
-
-Se configuran los mecanismos AAA correspondientes a los accesos físicos de administración.
-
-```cisco
-show running-config | section line con
-show running-config | section line aux
-```
-
-### 7.5. Registros y estadísticas
-
-Se habilitan y consultan los registros relacionados con la autenticación, autorización y comunicación RADIUS.
-
-```cisco
-show logging
-show radius statistics
-```
-
-### 7.6. Servicio SSH
-
-Se habilita SSH para permitir la administración remota cifrada del dispositivo.
-
-```cisco
-show ip ssh
-show running-config | section line vty
-```
-
+Current configuration : 2211 bytes
+!
+! Last configuration change at 14:03:50 UTC Fri Oct 30 2026 by ADMIN-LOCAL
+!
+version 15.2
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+!
+hostname R1-AAA
+!
+boot-start-marker
+boot-end-marker
+!
+!
+security passwords min-length 10
+enable secret 5 $1$IxVh$8l/vqXfxDw6Kj/MSPKB0d/
+!
+aaa new-model
+!
+!
+aaa group server radius RAD-GROUP
+ server name NPS-SRV
+!
+aaa authentication login CONSOLE_LOGIN group RAD-GROUP local
+aaa authentication login VTY_LOGIN group RAD-GROUP local
+aaa authorization console
+aaa authorization exec CONSOLE_EXEC group RAD-GROUP local
+aaa accounting exec CONSOLE_ACCOUNTING start-stop group RAD-GROUP
+!
+!
+!
+!
+!
+aaa session-id common
+no ip icmp rate-limit unreachable
+!
+!
+!
+!
+!
+!
+no ip domain lookup
+ip domain name aaa20231323.local
+ip cef
+login block-for 120 attempts 3 within 60
+no ipv6 cef
+!
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+username ADMIN-LOCAL privilege 15 secret 5 $1$8Mwe$kGM7ifGjlkJBKuHjXzTgH0
+!
+!
+!
+!
+!
+ip tcp synwait-time 5
+ip ssh time-out 60
+ip ssh version 2
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Ethernet0/0
+ no ip address
+ shutdown
+ duplex auto
+!
+interface GigabitEthernet0/0
+ description ENLACE_HACIA_SW1-AAA
+ ip address 10.23.13.1 255.255.255.0
+ media-type gbic
+ speed 1000
+ duplex full
+ negotiation auto
+!
+interface GigabitEthernet1/0
+ no ip address
+ shutdown
+ negotiation auto
+!
+interface GigabitEthernet2/0
+ no ip address
+ shutdown
+ negotiation auto
+!
+interface GigabitEthernet3/0
+ no ip address
+ shutdown
+ negotiation auto
+!
+interface GigabitEthernet4/0
+ no ip address
+ shutdown
+ negotiation auto
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+!
+!
+!
+!
+!
+radius server NPS-SRV
+ address ipv4 10.23.13.10 auth-port 1812 acct-port 1813
+ key 7 123A0916040E3355787865
+!
+!
+control-plane
+!
+!
+line con 0
+ privilege level 15
+ authorization exec CONSOLE_EXEC
+ logging synchronous
+ login authentication CONSOLE_LOGIN
+ stopbits 1
+line aux 0
+ privilege level 15
+ authorization exec CONSOLE_EXEC
+ logging synchronous
+ login authentication CONSOLE_LOGIN
+ stopbits 1
+line vty 0 4
+ authorization exec CONSOLE_EXEC
+ logging synchronous
+ login authentication VTY_LOGIN
+ transport input ssh
+!
+!
+end
 ## 🔀 8. Configuración del switch
 
 **Dispositivo:** SW1-AAA  
 **Dirección IP:** `10.23.13.2`
 
-### 8.1. Configuración AAA
+Building configuration...
 
-Se habilita AAA para controlar el acceso administrativo y los privilegios de los usuarios.
-
-```cisco
-show running-config | section aaa
-```
-
-### 8.2. Configuración del cliente RADIUS
-
-Se configura el switch como cliente RADIUS, estableciendo la comunicación con el servidor NPS.
-
-```cisco
-show running-config | section radius
-show aaa servers
-```
-
-### 8.3. Usuario local
-
-Se crea una cuenta local para disponer de acceso alternativo al dispositivo.
-
-```cisco
-show running-config | include username
-```
-
-### 8.4. Consola y puerto auxiliar
-
-Se verifican los mecanismos de autenticación y autorización configurados en los accesos físicos.
-
-```cisco
-show running-config | section line con
-show running-config | section line aux
-```
-
-### 8.5. Registros y estadísticas
-
-Se consultan los registros del dispositivo y las estadísticas de comunicación RADIUS.
-
-```cisco
-show logging
-show radius statistics
-```
-
-### 8.6. Servicio SSH
-
-Se verifica que SSH esté habilitado y que las líneas VTY estén configuradas para la administración remota.
-
-```cisco
-show ip ssh
-show running-config | section line vty
-```
-
-## 🧪 9. Pruebas y validación
-
-Se realizaron pruebas de autenticación utilizando los usuarios correspondientes a los niveles 0, 5 y 10.
-
-Para comprobar el nivel de privilegio asignado durante cada sesión se utilizó:
-
-```cisco
-show privilege
-```
-
-También se verificó el estado de los servidores AAA y RADIUS mediante:
-
-```cisco
-show aaa servers
-show radius statistics
-```
+Current configuration : 3952 bytes
+!
+! Last configuration change at 15:30:34 UTC Fri Oct 30 2026
+!
+version 15.2
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+service compress-config
+!
+hostname SW1-AAA
+!
+boot-start-marker
+boot-end-marker
+!
+!
+enable secret 5 $1$tuFt$nevyLjtPP6t0MvvYqDYOo.
+!
+username ADMIN-LOCAL privilege 15 secret 5 $1$D3G0$q/Rn7LjR5z2eY.ec1kgqU.
+aaa new-model
+!
+!
+aaa group server radius RAD-GROUP
+ server name NPS
+!
+aaa authentication login CONSOLE_LOGIN group RAD-GROUP local
+aaa authentication login VTY_LOGIN group RAD-GROUP local
+aaa authorization console
+aaa authorization exec CONSOLE_EXEC group RAD-GROUP local
+aaa accounting exec CONSOLE_ACCOUNTING start-stop group RAD-GROUP
+!
+!
+!
+!
+!
+!
+aaa session-id common
+!
+!
+!
+!
+!
+!
+!
+!
+no ip domain-lookup
+ip domain-name aaa20231323.local
+ip cef
+no ipv6 cef
+chat-script Define a modem chat script
+!
+!
+!
+spanning-tree mode pvst
+spanning-tree extend system-id
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0
+ description CONEXION_A_R1-AAA
+ switchport mode access
+ negotiation auto
+!
+interface GigabitEthernet0/1
+ negotiation auto
+!
+interface GigabitEthernet0/2
+ negotiation auto
+!
+interface GigabitEthernet0/3
+ negotiation auto
+!
+interface Vlan1
+ ip address 10.23.13.2 255.255.255.0
+!
+ip default-gateway 10.23.13.1
+ip forward-protocol nd
+!
+ip http server
+ip http secure-server
+!
+ip ssh time-out 60
+ip ssh version 2
+ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+!
+!
+ip radius source-interface Vlan1
+!
+!
+!
+ttycap Define \
+a new termcap
+keymap Define \
+a new keymap
+!
+!
+radius server NPS
+ address ipv4 10.23.13.10 auth-port 1812 acct-port 1813
+ key Clave_123!
+!
+!
+control-plane
+!
 
 ### Evidencias del laboratorio
 
-| Prueba | Evidencia |
-|---|---|
-| Autenticación del usuario nivel 0 | AGREGAR CAPTURA |
-| Autenticación del usuario nivel 5 | AGREGAR CAPTURA |
-| Autenticación del usuario nivel 10 | AGREGAR CAPTURA |
-| Validación de privilegios en router | AGREGAR CAPTURA |
-| Validación de privilegios en switch | AGREGAR CAPTURA |
-| Comunicación con RADIUS | AGREGAR CAPTURA |
-| Acceso mediante SSH | AGREGAR CAPTURA |
+<img width="673" height="428" alt="image" src="https://github.com/user-attachments/assets/4c036bb1-489b-432b-b996-51edf453ab24" />
 
 ## 📋 10. Resultados obtenidos
 
