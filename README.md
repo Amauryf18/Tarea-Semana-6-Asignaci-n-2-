@@ -10,7 +10,7 @@
 
 ## 🎥 Video demostrativo
 
-**Enlace al video:** [AGREGAR AQUÍ EL ENLACE DEL VIDEO]
+**Enlace al video:**
 
 > El video presenta la infraestructura implementada, la configuración de autenticación y autorización AAA, la integración con RADIUS y las pruebas de acceso realizadas en el router y el switch.
 
